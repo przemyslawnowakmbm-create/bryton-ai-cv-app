@@ -32,7 +32,12 @@
 4. SFIA levels 1-7 are queryable via a reference API endpoint; ESCO taxonomy weekly sync job runs without errors and populates the local reference table
 5. Tanstack Router serves at least a placeholder for every top-level route without 404s; Shadcn/UI component renders correctly with HSL custom properties
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Backend foundation: FastAPI + SQLAlchemy + Alembic + health endpoints + SFIA reference API
+- [ ] 01-02-PLAN.md — Frontend foundation: React 19 + TanStack Router + EUROCONTROL design system + placeholder routes
+- [ ] 01-03-PLAN.md — Docker Compose stack + ESCO weekly sync + integration smoke tests
 
 ---
 
@@ -212,7 +217,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure & Foundation | 0/? | Not started | - |
+| 1. Infrastructure & Foundation | 0/3 | Planning complete | - |
 | 2. Auth, Tenancy & RBAC | 0/? | Not started | - |
 | 3. Contracts, Rate Cards & Profile Catalogue | 0/? | Not started | - |
 | 4. Candidate Profiles & CV Management | 0/? | Not started | - |
