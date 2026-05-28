@@ -81,3 +81,6 @@ app.include_router(auth_router, prefix="/api")
 # Tenants API at /api/tenants/*
 from app.api.tenants import router as tenants_router  # noqa: E402
 app.include_router(tenants_router, prefix="/api")
+# Users API at /api/users/* (admin) and /api/tenants/{id}/users (SM)
+from app.api.users import router as users_router  # noqa: E402
+app.include_router(users_router, prefix="/api")
