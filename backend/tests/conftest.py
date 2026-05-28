@@ -105,12 +105,20 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
     app.dependency_overrides[get_db] = override_get_db
 
-    # Reset slowapi in-memory storage to avoid rate-limit interference between tests
+    # Reset slowapi in-memory storage to avoid rate-limit interference between tests.
+    # Both app.state.limiter (main.py) and _limiter (auth.py) have separate storages;
+    # both must be reset to avoid cross-test rate limit bleed.
     if hasattr(app.state, "limiter") and hasattr(app.state.limiter, "_storage"):
         try:
             app.state.limiter._storage.reset()
         except Exception:
             pass  # storage reset not supported
+    try:
+        from app.api.auth import _limiter as _auth_limiter
+        if hasattr(_auth_limiter, "_storage"):
+            _auth_limiter._storage.reset()
+    except Exception:
+        pass
 
     # Clear per-account login attempt tracking
     try:
