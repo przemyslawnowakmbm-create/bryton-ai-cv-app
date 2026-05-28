@@ -1,6 +1,7 @@
 import json
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,13 +9,16 @@ from app.api.health import router as health_router
 from app.api.reference import router as reference_router
 from app.config import settings
 from app.database import async_session
+from app.services.esco_sync import sync_esco_skills
 from app.services.seed import seed_sfia_levels
 from app.utils.logging import logger
+
+scheduler = AsyncIOScheduler()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan: startup tasks (seeding) + shutdown cleanup."""
+    """Application lifespan: startup tasks (seeding + scheduler) + shutdown cleanup."""
     logger.info("Starting Bryton AI CV App")
 
     # Seed reference data on startup
@@ -26,8 +30,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"SFIA seed skipped: {e}")
 
+    # Register weekly ESCO sync — every Monday at 02:00 UTC
+    scheduler.add_job(sync_esco_skills, "cron", day_of_week="mon", hour=2)
+    scheduler.start()
+    logger.info("ESCO sync job scheduled: every Monday at 02:00 UTC")
+
     yield
 
+    scheduler.shutdown()
     logger.info("Shutting down Bryton AI CV App")
 
 
