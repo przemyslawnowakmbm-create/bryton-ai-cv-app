@@ -3,7 +3,6 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.sfia_level import SfiaLevel
 from app.services.seed import seed_sfia_levels
 
 
