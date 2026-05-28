@@ -56,7 +56,13 @@ Plans:
 4. An SM can create a Customer user in their tenant; that Customer user sees only their tenant's data even if they manipulate query parameters
 5. An approval request created by a Recruiter for shortlist submission is visible to the assigned SM approver; the SM can approve/reject with a reason; the decision appears in the audit log with full context
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Auth backend: JWT service, registration, login, refresh, logout, email verification, password reset, rate limiting
+- [ ] 02-02-PLAN.md — Tenancy + RLS + RBAC: get_tenant_db with SET LOCAL, RLS policies, require_roles, tenant CRUD, multi-tenant assignments
+- [ ] 02-03-PLAN.md — Frontend auth: Zustand store, API client with 401 refresh, TanStack Router guards, login/register/reset pages
+- [ ] 02-04-PLAN.md — User management + Approvals + Audit: Admin CRUD users, SM tenant-scoped management, approval chain, audit log
 
 ---
 
@@ -218,7 +224,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure & Foundation | 0/3 | Planning complete | - |
-| 2. Auth, Tenancy & RBAC | 0/? | Not started | - |
+| 2. Auth, Tenancy & RBAC | 0/4 | Planning complete | - |
 | 3. Contracts, Rate Cards & Profile Catalogue | 0/? | Not started | - |
 | 4. Candidate Profiles & CV Management | 0/? | Not started | - |
 | 5. Demand Management & AI JD Enhancement | 0/? | Not started | - |
