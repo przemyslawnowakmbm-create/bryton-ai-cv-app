@@ -4,6 +4,10 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from app.api.health import router as health_router
 from app.api.reference import router as reference_router
@@ -12,6 +16,9 @@ from app.database import async_session
 from app.services.esco_sync import sync_esco_skills
 from app.services.seed import seed_sfia_levels
 from app.utils.logging import logger
+
+# Rate limiter (in-memory; upgrade to Redis backend for multi-instance)
+limiter = Limiter(key_func=get_remote_address)
 
 scheduler = AsyncIOScheduler()
 
@@ -48,6 +55,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Rate limiting — attach limiter to app state and add middleware
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 # CORS — parse the JSON list from settings
 _cors_origins = json.loads(settings.CORS_ORIGINS)
 app.add_middleware(
@@ -63,3 +75,6 @@ app.add_middleware(
 app.include_router(health_router)
 # Reference data API
 app.include_router(reference_router)
+# Auth API at /api/auth/*
+from app.api.auth import router as auth_router  # noqa: E402 — avoid circular import at module level
+app.include_router(auth_router, prefix="/api")
