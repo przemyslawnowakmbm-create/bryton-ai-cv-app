@@ -78,3 +78,6 @@ app.include_router(reference_router)
 # Auth API at /api/auth/*
 from app.api.auth import router as auth_router  # noqa: E402 — avoid circular import at module level
 app.include_router(auth_router, prefix="/api")
+# Tenants API at /api/tenants/*
+from app.api.tenants import router as tenants_router  # noqa: E402
+app.include_router(tenants_router, prefix="/api")
