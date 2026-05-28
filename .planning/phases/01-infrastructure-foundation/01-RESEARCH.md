@@ -108,7 +108,7 @@ npm install @tanstack/react-query zustand react-hook-form zod
 pip install fastapi uvicorn[standard] sqlalchemy[asyncio] asyncpg alembic
 pip install pydantic pydantic-settings python-json-logger httpx
 pip install azure-storage-blob apscheduler python-multipart
-pip install PyJWT bcrypt passlib[bcrypt]
+pip install PyJWT bcrypt
 # Dev
 pip install pytest pytest-asyncio aiosqlite ruff
 ```
