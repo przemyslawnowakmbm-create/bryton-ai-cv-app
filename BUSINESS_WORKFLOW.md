@@ -178,10 +178,10 @@ Candidate                      System                         AI (Claude)
 ```
 Customer/SM/Recruiter          System                         AI (Claude)
   │                               │                               │
-  │── Select profile from ──────▶│                               │
-  │   catalogue (e.g., SC-DEV-03)│── Pre-populate demand form:   │
+  │── (Optional) Select profile ─▶│                               │
+  │   from catalogue (SC-DEV-03) │── Pre-populate demand form:   │
   │                               │   - Title from profile        │
-  │                               │   - Required skills (ESCO)    │
+  │                               │   - Skills (as free text)     │
   │                               │   - SFIA level range          │
   │                               │   - Required certs            │
   │                               │   - Required languages (CEFR) │
@@ -189,8 +189,10 @@ Customer/SM/Recruiter          System                         AI (Claude)
   │                               │   - Rate ceiling from card    │
   │                               │                               │
   │── Refine demand details ────▶│                               │
-  │   (location, start date,     │── Assign demand number        │
-  │    remote policy, positions) │   (e.g., ECTL-0001)           │
+  │   (freely edit skills,       │── Assign demand number        │
+  │    add custom requirements,  │   (e.g., ECTL-0001)           │
+  │    location, start date,     │                               │
+  │    remote policy, positions) │                               │
   │                               │── Status = DRAFT              │
   │                               │── Save JD v1                  │
   │                               │── Link to contract + profile  │
@@ -228,15 +230,15 @@ Customer/SM/Recruiter          System                         AI (Claude)
 When creating/editing a JD for a profile-linked demand, the AI chat system prompt includes:
 
 ```
-Profile requirements for SC-DEV-03:
-- Mandatory skills: Java [ESCO:S1.2.3], Spring Boot [ESCO:S1.2.4], Microservices [ESCO:S1.5.1]
+Profile SC-DEV-03 baseline requirements (for reference — user may have modified):
+- Baseline skills: Java, Spring Boot, Microservices
 - Min experience: 8 years
 - SFIA: 4-5
 - Clearance: NATO RESTRICTED
 - Languages: English B2+, French B1+
 
-Ensure the JD aligns with these requirements. Flag if the user's edits
-would create a mismatch with the profile definition.
+Help the user write the best possible JD. If they've deviated from the
+profile baseline, that's fine — note the deviation but don't block it.
 ```
 
 ---
@@ -364,14 +366,14 @@ Recruiter/SM                   System                         AI (Claude)
   │                               │   ✗ Below min experience yrs  │
   │                               │   → Reduced candidate pool    │
   │                               │                               │
-  │                               │── PHASE 2: AI Scoring         │
+  │                               │── PHASE 2: LLM Holistic       │
+  │                               │   Assessment                  │
   │                               │   For each batch of 10-20:    │
   │                               │   Send to Claude: ───────────▶│
-  │                               │   - JD + profile (system ctx) │── Score each
-  │                               │   - ESCO-coded skills         │   candidate on
-  │                               │   - Candidate batch (parsed)  │   all dimensions
-  │                               │   - Scoring dimensions        │── Generate
-  │                               │   - Weight config             │   explanations
+  │                               │   - Full JD text (system ctx) │── Read JD + CV
+  │                               │   - Full parsed CV per cand.  │   holistically
+  │                               │   - Profile reqs (if linked)  │── Score, explain,
+  │                               │   - Scoring instructions      │   identify gaps
   │                               │   ◀── Scores + explanations ──│
   │                               │   Log AI decisions            │
   │                               │                               │
@@ -439,12 +441,12 @@ SM │◀── Approval request ────────│                    
 │                                                                  │
 │  COMPOSITE: 84.5 / 100                                          │
 │                                                                  │
-│  PROFILE COMPLIANCE:                                             │
-│  ✓ Java [ESCO:S1.2.3] — 8 years                                │
-│  ✓ Spring Boot [ESCO:S1.2.4] — 5 years                         │
-│  ✓ Microservices [ESCO:S1.5.1] — 4 years                       │
+│  PROFILE COMPLIANCE (advisory):                                  │
+│  ✓ Java — 8 years experience                                    │
+│  ✓ Spring Boot — 5 years experience                             │
+│  ✓ Microservices — 4 years experience                           │
 │  ✓ Oracle Java SE Certified — verified, expires 2027-06         │
-│  ⚠ Kubernetes [ESCO:S5.3.4] — preferred, not on CV             │
+│  ⚠ Kubernetes — preferred (profile baseline), not on CV         │
 │                                                                  │
 │  RATE CARD: ✓ Within ceiling                                     │
 │  Candidate: €720/day | Ceiling: €800/day (SFIA 5)              │
@@ -452,12 +454,12 @@ SM │◀── Approval request ────────│                    
 │                                                                  │
 │  AI EXPLANATION:                                                 │
 │  "Strong match. 10 years of Java experience with Spring Boot    │
-│   and microservices architecture aligns well with SC-DEV-03     │
+│   and microservices architecture aligns well with the demand's  │
 │   requirements. SFIA Level 5 confirmed by track record of       │
 │   leading technical teams and making architectural decisions.    │
 │   Minor gap: Kubernetes is listed as preferred but candidate    │
-│   has Docker/container experience which is closely related      │
-│   [ESCO:S5.3 branch]. All mandatory requirements met.           │
+│   has Docker/container experience which is closely related.     │
+│   All mandatory profile requirements met. Rate within ceiling.  │
 │   Available from 2026-07-15, within demand start window."       │
 │                                                                  │
 │  [✓ Shortlist]  [✗ Reject (select reason)]  [📋 Comparison]    │
@@ -1007,8 +1009,8 @@ Candidate                      System                         Admin
 ## 19. Key Business Rules
 
 1. **Demand numbers are immutable** — once assigned, `ECTL-0001` never changes
-2. **Profile selection is required** for demands linked to a contract with a catalogue
-3. **Mandatory profile requirements are non-negotiable** — red compliance items block shortlisting unless SM overrides via approval chain
+2. **Profile selection is optional** — profiles serve as templates that pre-populate the demand form, not constraints
+3. **Profile compliance checks are advisory** — they show deviation from the original profile baseline but do not block shortlisting; SM can mark as "N/A — intentionally modified"
 4. **Rate card ceilings are enforced** — candidates above ceiling cannot be shortlisted without documented approval
 5. **Security clearance is a hard filter** — candidates without required clearance are excluded from matching, no override
 6. **Language requirements are hard filters** — below minimum CEFR = excluded from matching

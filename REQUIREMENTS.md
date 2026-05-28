@@ -217,7 +217,7 @@ Configurable per tenant. Certain actions require approval from a second authoriz
   - Personal information (name, contact, location)
   - Work experience (company, role, duration, description)
   - Education (institution, degree, field, year)
-  - Skills mapped to **ESCO taxonomy codes** (see §4.2)
+  - Skills (as free text, with background ESCO code mapping for analytics — see §4.2)
   - Certifications and licenses (name, issuer, date, expiry)
   - Language proficiencies with **CEFR level inference** (see §4.1.6)
   - Security clearance mentions (see §4.5)
@@ -254,24 +254,29 @@ Configurable per tenant. Certain actions require approval from a second authoriz
 - Profile catalogue specifies required language + minimum CEFR level per profile
 - Matching engine includes language compliance check (hard filter: below minimum = excluded)
 
-### 4.2 ESCO Skills Taxonomy
+### 4.2 ESCO Skills Taxonomy (Background Enrichment)
 
 #### 4.2.1 Overview
-The **European Skills, Competences, Qualifications and Occupations (ESCO)** classification is the EU's multilingual skills taxonomy, maintained by the European Commission. Integrating ESCO provides standardized skills vocabulary, semantic matching, and EU institutional alignment.
+The **European Skills, Competences, Qualifications and Occupations (ESCO)** classification is the EU's multilingual skills taxonomy, maintained by the European Commission. ESCO is integrated as **background metadata** — it enriches data for standardization, reporting, and analytics, but **never constrains user input or drives the matching engine**.
 
-#### 4.2.2 Integration
-- ESCO taxonomy loaded as reference data (skills hierarchy with codes)
-- AI CV parsing maps extracted skills to ESCO codes (with confidence score)
-- JD creation and profile catalogue use ESCO-aligned skill tags (with autocomplete search)
-- Matching operates on ESCO codes (semantic similarity, not string matching)
-- Skills that don't map to ESCO are stored as "custom skills" with a flag for future mapping
+#### 4.2.2 Role of ESCO
+- **Users never see or interact with ESCO codes** — all skills input is free text
+- AI CV parsing silently maps extracted skills to ESCO codes in the background (with confidence score)
+- ESCO mappings stored as metadata alongside the raw skill text
+- Skills that don't map to ESCO are stored as-is — no penalty, no flag to the user
 - ESCO data refreshed periodically from the ESCO API (free, maintained by EC)
 
-#### 4.2.3 Benefits
-- Standardized vocabulary eliminates matching failures from naming differences (e.g., "JS" vs "JavaScript" both map to the same ESCO code)
-- Cross-border skill comparability (multilingual candidates)
-- Signals regulatory sophistication to EU institutional clients
-- Enables future skills gap analysis and supply/demand reporting
+#### 4.2.3 What ESCO Enables (Behind the Scenes)
+- **Supply/demand analytics**: standardized skill vocabulary allows aggregate reporting ("we have 15 candidates with cloud architecture skills, 23 demands require it")
+- **Cross-border comparability**: multilingual candidates' skills normalized for reporting
+- **EU institutional signaling**: compliance documentation can cite ESCO alignment
+- **Future skills gap dashboards**: ESCO codes power the analytics layer, not the matching layer
+
+#### 4.2.4 What ESCO Does NOT Do
+- Does not constrain skill input on demands or candidate profiles
+- Does not drive the matching engine (matching is LLM-driven — see §4.10)
+- Does not appear in any user-facing UI (no ESCO code dropdowns, no taxonomy browsers)
+- Does not block demand creation if skills can't be mapped
 
 ### 4.3 SFIA Framework
 
@@ -302,7 +307,7 @@ The **Skills Framework for the Information Age (SFIA)** defines 7 levels of resp
 ### 4.4 Profile Catalogue
 
 #### 4.4.1 Overview
-EU institutional T&M contracts define a catalogue of **predefined profiles** — standardized role definitions with mandatory qualifications, minimum experience, required certifications, and language requirements. Every candidate submitted must map to a profile and be validated against its requirements.
+EU institutional T&M contracts define a catalogue of **predefined profiles** — standardized role definitions with baseline qualifications, minimum experience, required certifications, and language requirements. Profiles serve as **starting templates** for demands — they pre-populate the demand form but **do not constrain it**. Users have full freedom to modify, add, or remove any skill or requirement after profile selection.
 
 #### 4.4.2 Profile Definition
 Each profile contains:
@@ -314,8 +319,8 @@ Each profile contains:
 | Description | Role summary | "Designs, develops, and maintains..." |
 | SFIA Level Range | Min-Max SFIA level | 4-5 |
 | Min Years Experience | Total relevant experience | 8 |
-| Required Skills | ESCO-coded mandatory skills | Java, Spring Boot, Microservices |
-| Preferred Skills | ESCO-coded nice-to-have skills | Kubernetes, AWS |
+| Baseline Skills | Free-text skills (suggested starting set) | Java, Spring Boot, Microservices |
+| Preferred Skills | Nice-to-have suggestions | Kubernetes, AWS |
 | Required Certifications | Must-have certs | Oracle Java SE Certified |
 | Required Languages | Language + min CEFR level | English B2+, French B1+ |
 | Required Clearance | Min security clearance level | NATO RESTRICTED |
@@ -323,14 +328,21 @@ Each profile contains:
 | Contract | Link to parent contract | ECTL-FWC-2026-01 |
 | Rate Ceiling | Max daily rate for this profile | Linked to rate card |
 
-#### 4.4.3 Profile Compliance Check
+#### 4.4.3 Profile as Template (Not Constraint)
+- Profile selection pre-populates the demand form with all fields from the profile definition
+- **Customer/Recruiter/SM can freely modify everything**: add skills, remove skills, change requirements, adjust SFIA range, rewrite the description
+- The system tracks deviations: "This demand was based on SC-DEV-03 but the following changes were made: [diff]"
+- No edits are blocked — the profile is a convenience, not a gate
+
+#### 4.4.4 Profile Compliance Check (Advisory)
 When a candidate is matched or shortlisted against a profile-linked demand:
-- System runs automated compliance check against all profile requirements
-- Produces a **compliance checklist**: each requirement marked as MET / PARTIALLY MET / NOT MET / UNVERIFIED
-- Visual indicator: green (all mandatory met), amber (minor gaps in preferred), red (mandatory requirement not met)
-- Red items block shortlisting unless SM overrides with documented justification (triggers approval chain)
-- Compliance checklist attached to the candidate-demand submission record
-- Client sees the checklist on shortlisted candidate profiles
+- System runs automated compliance check against the **original profile requirements** (not the modified demand)
+- Produces an **advisory compliance checklist**: each original requirement marked as MET / PARTIALLY MET / NOT MET / UNVERIFIED
+- Visual indicator: green (all met), amber (minor gaps), red (significant deviation from profile)
+- **Advisory only — does not block shortlisting**. If the demand was intentionally modified from the profile, red items on the original profile check are expected and acceptable
+- SM can flag the compliance check as "N/A — demand requirements intentionally differ from profile"
+- Compliance checklist attached to the submission record for audit transparency
+- Client sees the checklist on shortlisted candidate profiles (with modification context)
 
 ### 4.5 Security Clearance Management
 
@@ -404,12 +416,13 @@ Rate cards define maximum daily-rate ceilings per profile and SFIA level:
 
 #### 4.7.1 Demand Creation
 - Created by: Service Manager, Recruiter, or Customer
-- **Must select from profile catalogue** (if demand is linked to a contract with a catalogue)
-  - Profile selection pre-populates: required skills, experience level, certifications, languages, clearance, SFIA range
-  - User can refine but cannot remove mandatory requirements from the profile
-- Free-form demands allowed for contracts without a profile catalogue
-- Required fields: title, description/JD, location, employment type, profile (if applicable), contract (if applicable)
-- Optional fields: salary/rate range, start date, number of positions, department, remote policy
+- **Optionally select from profile catalogue** to pre-populate the form — but selection is not required
+  - Profile selection pre-populates: skills (as free text), experience level, certifications, languages, clearance, SFIA range
+  - **All pre-populated fields are fully editable** — user can add, remove, or rewrite anything (see §4.4.3)
+- Free-form demands (no profile selection) are always allowed
+- **Skills input is free text** — user types naturally ("experience with cloud migration, Kubernetes, ideally someone who's worked in ATM systems"). AI suggests ESCO-aligned tags as autocomplete but user can ignore them entirely. Custom/niche skills work fine.
+- Required fields: title, description/JD, location, employment type
+- Optional fields: profile (template), contract, rate range, start date, number of positions, department, remote policy
 - AI JD enhancement available during creation (see §4.8)
 
 #### 4.7.2 Demand Numbering
@@ -491,7 +504,7 @@ At every stage where a candidate is rejected, a **structured reason** is require
 
 #### 4.8.3 AI Capabilities
 - Identify missing JD sections (responsibilities, qualifications, benefits, team context)
-- Suggest ESCO-coded skill requirements based on role type
+- Suggest relevant skill requirements based on role type and industry context
 - Flag ambiguous language or unrealistic requirement combinations
 - Improve readability and structure
 - Generate JD from minimal input via guided conversation
@@ -529,52 +542,68 @@ Per candidate per demand submission, a structured verification checklist:
 - Manual trigger only: Recruiter or SM clicks "Find Matches" on a demand
 - Can be re-run at any time (new CVs may have been added)
 
-#### 4.10.2 ESCO-Based Skill Matching
-- Matching operates on ESCO skill codes, not raw text
-- Required skills from JD/profile matched against candidate's ESCO-coded skills
-- Semantic similarity: skills in the same ESCO branch score higher than exact-match-only systems
-- Preferred skills scored separately (contribute to ranking but don't disqualify)
+#### 4.10.2 Matching Architecture: LLM Holistic Assessment
 
-#### 4.10.3 Matching Dimensions
-Full multi-dimensional scoring across:
+The matching engine uses a **two-phase approach**: structured hard filters eliminate dealbreakers, then an LLM reads the full JD against the full CV like a human recruiter would.
 
-| Dimension | Weight | Source | Hard Filter |
-|-----------|--------|--------|:-----------:|
-| Skills match (ESCO) | High | Parsed CV skills vs. JD/profile required skills | No |
-| Experience level | High | Years of experience, SFIA level alignment | No |
-| Profile compliance | High | Mandatory profile requirements met/unmet | **Yes** — fails = excluded |
-| Security clearance | N/A | Required clearance present | **Yes** — missing = excluded |
-| Language proficiency | N/A | Required CEFR levels met | **Yes** — below minimum = excluded |
-| Location compatibility | Medium | Candidate location vs. demand location + remote policy | No |
-| Availability | Medium | Candidate available date vs. demand start date | No |
-| Education | Low-Medium | Degree level, field relevance | No |
-| Certifications | Medium | Required certs present/absent | No |
-| Rate alignment | Medium | Candidate rate vs. rate card ceiling | No |
-| Career trajectory | Low | Progression pattern suggests fit for role level | No |
+**Phase 1 — Structured Hard Filters (fast, deterministic)**
+Before any AI is invoked, the system eliminates candidates who fail non-negotiable criteria using structured data:
 
-- Hard filters applied first (clearance, language, profile mandatory requirements)
-- Remaining candidates scored on soft dimensions
-- Composite weighted score (0–100)
-- Each dimension scored individually and visible in match detail
-- Configurable weights per tenant (SM can adjust)
+| Hard Filter | Source | Logic |
+|-------------|--------|-------|
+| Security clearance | Candidate clearance records vs. demand/profile requirement | Missing required level = excluded |
+| Language proficiency | Candidate CEFR levels vs. demand/profile requirement | Below minimum CEFR = excluded |
+| Rate ceiling | Candidate rate expectation vs. rate card ceiling | Above ceiling = excluded (unless SM pre-approves) |
+| Availability | Candidate available date vs. demand start date | Configurable: exclude if >N days late |
 
-#### 4.10.4 AI Explainability (EU AI Act Compliance)
+Hard filters reduce the candidate pool before expensive LLM calls. A demand requiring NATO SECRET clearance won't waste AI tokens evaluating hundreds of uncleared candidates.
+
+**Phase 2 — LLM Holistic Assessment (intelligent, contextual)**
+For each candidate passing hard filters, the system sends to Claude:
+- The **full JD text** (as written by the user, not decomposed into codes)
+- The **full parsed CV data** (structured experience, skills as free text, education, certifications)
+- The **profile requirements** (if a profile was selected, for compliance context)
+- **Scoring instructions**: assess overall fit, score on 0-100 scale, evaluate specific dimensions, generate narrative explanation
+
+The LLM reads both documents holistically — understanding context, inferring relevance, and catching connections that no keyword or taxonomy system would:
+- "Experience with EUROCONTROL's COFLIGHT system" matches a JD asking for "ATM modernization experience"
+- "Led migration from monolith to microservices" is relevant to "cloud-native architecture skills" even if neither word appears in the other document
+- Career trajectory signals (someone who moved from developer → architect → tech lead) inform seniority assessment
+
+**What the LLM returns per candidate:**
+- **Composite score** (0-100)
+- **Dimension scores**: skills fit, experience level, education relevance, certification alignment, location compatibility, rate alignment, career trajectory, overall cultural/contextual fit
+- **Narrative explanation** (see §4.10.3)
+- **Strengths**: top 3 reasons this candidate is a good match
+- **Gaps**: anything missing or concerning
+- **Profile compliance assessment** (if profile-linked): which original profile requirements are met/unmet
+
+#### 4.10.3 AI Explainability (EU AI Act Compliance)
 Every match result includes a **human-readable narrative explanation**:
 
-> "Candidate scored 85/100. Strong match on cloud architecture skills (AWS [ESCO:S5.2.1], Kubernetes [ESCO:S5.3.4]) and 8 years relevant experience exceeding the 5-year minimum (SFIA Level 5 confirmed). Gap: no Azure DevOps certification (preferred, not required). Location compatible: London, role is remote-friendly. Rate (€720/day) within ceiling (€800/day). Profile compliance: all mandatory requirements met."
+> "Candidate scored 85/100. Strong match: 10 years of Java experience with significant Spring Boot and microservices work, including a cloud migration project that aligns well with the demand's emphasis on modernization. SFIA Level 5 confirmed by track record of leading technical teams and making architectural decisions at TechCo. Clearance: NATO RESTRICTED active (expires 2028-03). Languages: English C1, French B1 — both meet requirements. Rate €720/day within €800 ceiling. Gap: no Oracle Java SE certification (required by profile) but has equivalent AWS certification and 3 years of certified Oracle DBA experience which partially compensates. Available from July 15, within demand start window."
 
-- Explanation generated by Claude alongside score
+- Explanation generated by Claude alongside score — not a separate call
 - Stored in `match_results.explanation` for audit purposes
 - Visible to Recruiter, SM, and Customer (on shortlisted candidates)
-- Cost: ~$0.01 per candidate explanation — negligible
+- Every AI match decision logged per EU AI Act requirements (model, prompt version, input/output summary, human action)
+
+#### 4.10.4 Cost Management
+- Hard filters run on structured data — zero AI cost
+- LLM assessment: candidates evaluated in batches of 10-20 (JD sent once as system context, candidates as individual messages)
+- Estimated cost: ~$0.03-0.08 per candidate assessed
+- For a pool of 500 candidates with 50 passing hard filters: ~$1.50-4.00 per matching run
+- Cost tracked per tenant per demand in AI monitoring dashboard
 
 #### 4.10.5 Match Output
 - Ranked list of candidates with composite scores
-- Per-candidate breakdown of dimension scores + narrative explanation
+- Per-candidate: dimension scores + narrative explanation + strengths + gaps
+- Profile compliance checklist (advisory — see §4.4.4)
+- Rate card status indicator
 - Highlight: strong matches (green), partial matches (amber), gaps (red)
 - Top N candidates auto-shortlisted (N configurable per tenant, default: 10)
 - Recruiter reviews auto-shortlist, can add/remove candidates
-- **Comparison view**: select 2-4 candidates, see side-by-side table of all dimensions, qualifications, rates
+- **Comparison view**: select 2-4 candidates, see side-by-side narrative + scores + qualifications + rates
 - Shortlist submission to client triggers approval chain (Recruiter → SM)
 
 ### 4.11 SLA & KPI Management

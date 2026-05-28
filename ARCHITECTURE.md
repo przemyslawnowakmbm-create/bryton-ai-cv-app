@@ -774,7 +774,6 @@ CREATE TABLE profile_requirements (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_id      UUID NOT NULL REFERENCES profile_catalogue(id),
     req_type        VARCHAR(20) NOT NULL,
-    esco_code       VARCHAR(50),
     description     VARCHAR(255) NOT NULL,
     is_mandatory    BOOLEAN DEFAULT TRUE,
     min_cefr_level  VARCHAR(2),
@@ -915,8 +914,8 @@ CREATE TABLE demands (
     employment_type VARCHAR(20),
     sfia_level_min  INTEGER REFERENCES sfia_levels(level),
     sfia_level_max  INTEGER REFERENCES sfia_levels(level),
-    required_skills JSONB DEFAULT '[]',
-    preferred_skills JSONB DEFAULT '[]',
+    required_skills TEXT,                    -- free-text skills input by user
+    preferred_skills TEXT,                   -- free-text preferred skills
     rate_min        DECIMAL(10,2),
     rate_max        DECIMAL(10,2),
     rate_currency   VARCHAR(3) DEFAULT 'EUR',
@@ -1335,13 +1334,13 @@ CREATE TABLE formatted_cv_outputs (
 
 | Feature | Model | Input | Output | Latency |
 |---------|-------|-------|--------|---------|
-| CV Parsing + ESCO mapping | Sonnet | Raw CV text | Structured JSON with ESCO codes | 5-15s |
+| CV Parsing + background ESCO mapping | Sonnet | Raw CV text | Structured JSON (free-text skills + silent ESCO codes) | 5-15s |
 | SFIA Level Inference | Sonnet | Parsed CV summary | SFIA level + justification | 2-5s |
 | JD Enhancement Chat | Sonnet | Conversation + JD + profile | Streaming text | 1-3s first token |
 | JD Bias Detection | Haiku | JD paragraph | Flagged issues | <2s |
 | Inline JD Suggestions | Haiku | JD paragraph | Suggestion list | <2s |
-| CV-Demand Matching | Sonnet | JD + parsed CV (batched) | Score + dimensions + explanation | 3-8s per candidate |
-| Profile Compliance Check | Haiku | Profile reqs + parsed CV | Checklist (met/unmet per req) | 2-4s |
+| CV-Demand Matching (holistic) | Sonnet | Full JD text + full parsed CV (batched) | Score + dimensions + narrative explanation + strengths + gaps | 3-8s per candidate |
+| Profile Compliance Check (advisory) | Haiku | Profile reqs + parsed CV | Advisory checklist (met/unmet per req) | 2-4s |
 | Interview Questions | Sonnet | JD + CV + profile | Categorized question set | 5-10s |
 | Assessment Questions | Sonnet | JD + profile + test config | Question list | 5-10s |
 | Assessment Scoring | Sonnet | Question + rubric + answer | Score + reasoning + confidence | 2-5s per answer |
@@ -1369,13 +1368,14 @@ async def log_ai_decision(
     # Calculate cost estimate from token counts
 ```
 
-### 5.3 ESCO Integration
+### 5.3 ESCO Integration (Background Enrichment Only)
 
 - ESCO API base: `https://ec.europa.eu/esco/api`
-- Sync job: runs weekly, pulls full skills taxonomy
-- Local cache in `esco_skills` table for fast autocomplete
-- CV parsing prompt includes instruction to map skills to ESCO codes
-- Matching scorer uses ESCO hierarchy for semantic similarity
+- Sync job: runs weekly, pulls full skills taxonomy into `esco_skills` table
+- CV parsing prompt includes instruction to silently map skills to ESCO codes in the background
+- ESCO codes stored as metadata alongside free-text skills — never shown to users
+- ESCO powers the analytics/reporting layer (supply/demand dashboards, skills gap analysis)
+- Matching engine does NOT use ESCO for scoring — matching is LLM-driven holistic assessment (see REQUIREMENTS §4.10.2)
 
 ### 5.4 Cost Management
 
