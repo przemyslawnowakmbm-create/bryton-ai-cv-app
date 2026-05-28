@@ -324,7 +324,16 @@ async def refresh_token(
             detail="Refresh token not found or revoked",
         )
 
-    if matching_record.expires_at < datetime.now(timezone.utc):
+    # Compare datetimes safely: handle both timezone-aware (PostgreSQL)
+    # and timezone-naive (SQLite in tests) expires_at values.
+    expires_at = matching_record.expires_at
+    now_utc = datetime.now(timezone.utc)
+    if expires_at.tzinfo is None:
+        # Naive datetime from SQLite — treat as UTC
+        expires_at_aware = expires_at.replace(tzinfo=timezone.utc)
+    else:
+        expires_at_aware = expires_at
+    if expires_at_aware < now_utc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token expired",
