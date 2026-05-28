@@ -7,5 +7,6 @@ from app.models.sfia_level import SfiaLevel  # noqa: F401
 from app.models.esco_skill import EscoSkill  # noqa: F401
 from app.models.refresh_token import RefreshToken  # noqa: F401
 from app.models.email_token import EmailToken  # noqa: F401
+from app.models.user_tenant import UserTenantAssignment  # noqa: F401
 
-__all__ = ["Tenant", "User", "SfiaLevel", "EscoSkill", "RefreshToken", "EmailToken"]
+__all__ = ["Tenant", "User", "SfiaLevel", "EscoSkill", "RefreshToken", "EmailToken", "UserTenantAssignment"]
