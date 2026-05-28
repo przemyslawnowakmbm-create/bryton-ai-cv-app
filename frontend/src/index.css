@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* EUROCONTROL Brand: Primary Blue #003366, Secondary Blue #2990EA, Accent #008dbb */
+    --background: 210 20% 98%;
+    --foreground: 210 100% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 100% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 100% 10%;
+    --primary: 210 100% 20%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 211 82% 54%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 20% 95%;
+    --muted-foreground: 210 15% 45%;
+    --accent: 195 100% 37%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 211 82% 54%;
+    --radius: 0.375rem;
+
+    /* EUROCONTROL extended palette */
+    --ec-primary: 210 100% 20%;
+    --ec-secondary: 211 82% 54%;
+    --ec-accent: 195 100% 37%;
+    --ec-sky: 211 82% 94%;
+    --ec-navy: 210 100% 12%;
+    --ec-success: 152 69% 31%;
+    --ec-warning: 38 92% 50%;
+    --ec-danger: 0 84% 60%;
+
+    --sidebar-width: 260px;
+    --header-height: 56px;
+  }
+
+  .dark {
+    --background: 210 50% 6%;
+    --foreground: 210 20% 95%;
+    --card: 210 50% 9%;
+    --card-foreground: 210 20% 95%;
+    --popover: 210 50% 9%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 211 82% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 100% 20%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 210 40% 14%;
+    --muted-foreground: 210 15% 60%;
+    --accent: 195 100% 37%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 20% 95%;
+    --border: 210 40% 18%;
+    --input: 210 40% 18%;
+    --ring: 211 82% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Exo', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Exo', system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  /* EUROCONTROL branded status indicators */
+  .ec-badge-high {
+    @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
+  }
+  .ec-badge-medium {
+    @apply bg-amber-100 text-amber-800 border border-amber-200;
+  }
+  .ec-badge-low {
+    @apply bg-red-100 text-red-800 border border-red-200;
+  }
+
+  /* EUROCONTROL sidebar active state */
+  .ec-nav-active {
+    background: linear-gradient(135deg, hsl(210 100% 20%) 0%, hsl(211 82% 54%) 100%);
+    @apply text-white shadow-sm;
+  }
+
+  /* EUROCONTROL card hover */
+  .ec-card-interactive {
+    @apply transition-all duration-200;
+  }
+  .ec-card-interactive:hover {
+    @apply shadow-md border-[hsl(211,82%,54%)]/30;
+    transform: translateY(-1px);
+  }
+
+  /* EUROCONTROL header gradient */
+  .ec-header-gradient {
+    background: linear-gradient(135deg, hsl(210 100% 20%) 0%, hsl(210 100% 12%) 100%);
+  }
+
+  /* EUROCONTROL accent line */
+  .ec-accent-line {
+    @apply h-0.5 w-full;
+    background: linear-gradient(90deg, hsl(211 82% 54%) 0%, hsl(195 100% 37%) 100%);
+  }
+
+  /* Sidebar scrollbar — matches dark blue sidebar background */
+  .ec-header-gradient ::-webkit-scrollbar,
+  [class*="ec-primary"] ::-webkit-scrollbar {
+    width: 6px;
+  }
+  .ec-header-gradient ::-webkit-scrollbar-track,
+  [class*="ec-primary"] ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .ec-header-gradient ::-webkit-scrollbar-thumb,
+  [class*="ec-primary"] ::-webkit-scrollbar-thumb {
+    background: rgba(41, 144, 234, 0.3);
+    border-radius: 3px;
+  }
+  .ec-header-gradient ::-webkit-scrollbar-thumb:hover,
+  [class*="ec-primary"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(41, 144, 234, 0.5);
+  }
+
+  /* Firefox scrollbar for dark sidebar */
+  .ec-header-gradient *,
+  [class*="ec-primary"] * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(41, 144, 234, 0.3) transparent;
+  }
+
+  /* Light sidebar + content area scrollbar — subtle brand-tinted */
+  aside:not(.ec-header-gradient) ::-webkit-scrollbar,
+  main ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  aside:not(.ec-header-gradient) ::-webkit-scrollbar-track,
+  main ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  aside:not(.ec-header-gradient) ::-webkit-scrollbar-thumb,
+  main ::-webkit-scrollbar-thumb {
+    background: hsl(var(--ec-secondary) / 0.2);
+    border-radius: 3px;
+  }
+  aside:not(.ec-header-gradient) ::-webkit-scrollbar-thumb:hover,
+  main ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--ec-secondary) / 0.35);
+  }
+
+  /* Firefox for light sidebars + content */
+  aside:not(.ec-header-gradient),
+  main {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(41, 144, 234, 0.2) transparent;
+  }
+}
