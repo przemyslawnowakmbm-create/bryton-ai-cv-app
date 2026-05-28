@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -23,6 +24,12 @@ class User(Base):
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
+    )
+    # Phase 2: email verification and GDPR consent
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    gdpr_consent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    gdpr_consent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
     created_at: Mapped[str] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
