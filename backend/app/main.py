@@ -87,3 +87,9 @@ app.include_router(users_router, prefix="/api")
 # Approvals and audit log API at /api/approvals/* and /api/audit-log
 from app.api.approvals import router as approvals_router  # noqa: E402
 app.include_router(approvals_router, prefix="/api")
+# Contracts and Rate Cards API at /api/contracts/*
+from app.api.contracts import router as contracts_router  # noqa: E402
+app.include_router(contracts_router, prefix="/api")
+# Profiles API at /api/profiles/*
+from app.api.profiles import router as profiles_router  # noqa: E402
+app.include_router(profiles_router, prefix="/api")
