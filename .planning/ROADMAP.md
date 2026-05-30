@@ -105,7 +105,13 @@ Plans:
 4. Candidate profile shows a completeness percentage that increases as more fields are filled in and decreases if required fields are cleared
 5. When a clearance expiry date is within 90 days, the candidate and recruiter receive an alert notification; alerts repeat at 60 and 30 days
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Models, migration, schemas, config: Candidate, CvFile, SecurityClearance, CandidateLanguage + Alembic 006 (global, no RLS)
+- [ ] 04-02-PLAN.md — Candidate API + services: CRUD endpoints, CV upload + blob storage, clearance/language CRUD, completeness, version management
+- [ ] 04-03-PLAN.md — CV parser service: text extraction (pdfplumber/python-docx) + Claude AI structured parsing with ESCO mapping
+- [ ] 04-04-PLAN.md — Clearance expiry monitor + CV parse integration: APScheduler daily job, alert dedup, upload-triggers-parse wiring
 
 ---
 
@@ -231,7 +237,7 @@ Plans:
 | 1. Infrastructure & Foundation | 0/3 | Planning complete | - |
 | 2. Auth, Tenancy & RBAC | 0/4 | Planning complete | - |
 | 3. Contracts, Rate Cards & Profile Catalogue | 0/3 | Planning complete | - |
-| 4. Candidate Profiles & CV Management | 0/? | Not started | - |
+| 4. Candidate Profiles & CV Management | 0/4 | Planning complete | - |
 | 5. Demand Management & AI JD Enhancement | 0/? | Not started | - |
 | 6. AI Matching & Shortlisting | 0/? | Not started | - |
 | 7. CV Verification & Formatted CV | 0/? | Not started | - |
