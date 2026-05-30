@@ -19,7 +19,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps import Role, get_tenant_db, require_roles
@@ -170,23 +170,29 @@ def _build_profile_response(
 
 
 # ---------------------------------------------------------------------------
-# Helper: get effective tenant_id from RLS session
+# Helper: get effective tenant_id from current user
 # ---------------------------------------------------------------------------
 
 
-async def _get_effective_tenant_id(db: AsyncSession) -> uuid.UUID:
-    """Read the tenant_id from the active RLS session GUC.
+def _get_effective_tenant_id(current_user: User) -> uuid.UUID:
+    """Get the tenant_id from the current user.
 
-    The GUC is set by get_tenant_db via SET LOCAL app.current_tenant.
-    Returns the UUID of the active tenant.
+    For Customer/Candidate: user.tenant_id is set directly.
+    For Admin/SM/Recruiter: resolved by get_tenant_db dependency.
+
+    The RLS session (get_tenant_db) already enforces tenant isolation via
+    SET LOCAL app.current_tenant. We use current_user.tenant_id to set the
+    tenant_id column on new records — this is the same value the GUC was set to.
+
+    Raises HTTP 400 if the user has no tenant context (should not happen in
+    practice since get_tenant_db already guards this).
     """
-    from sqlalchemy import text
-
-    result = await db.execute(
-        text("SELECT current_setting('app.current_tenant', true)")
-    )
-    tenant_str = result.scalar_one()
-    return uuid.UUID(tenant_str)
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User has no tenant context — cannot create tenant-scoped record",
+        )
+    return current_user.tenant_id
 
 
 # ---------------------------------------------------------------------------
@@ -205,7 +211,7 @@ async def create_profile(
     Requirements are created atomically with the profile.
     Sets denormalised tenant_id on each requirement for RLS (Pitfall 2).
     """
-    effective_tenant_id = await _get_effective_tenant_id(db)
+    effective_tenant_id = _get_effective_tenant_id(current_user)
 
     profile = ProfileCatalogue(
         id=uuid.uuid4(),
