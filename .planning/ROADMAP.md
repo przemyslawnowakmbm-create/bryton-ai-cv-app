@@ -81,7 +81,12 @@ Plans:
 4. Admin can create a profile catalogue entry with SFIA range, baseline skills, certifications, CEFR requirements, and clearance requirement; when a Recruiter creates a demand from that profile, all fields are pre-populated and freely editable
 5. After editing a demand's pre-populated fields, the system displays a diff showing exactly which fields deviate from the source profile
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Models, migration, and schemas: Contract, RateCardEntry, ProfileCatalogue, ProfileRequirement, Demand stub + Alembic 005 with RLS
+- [ ] 03-02-PLAN.md — Contracts API + rate check service: CRUD endpoints, rate card management, margin visibility, rate ceiling enforcement
+- [ ] 03-03-PLAN.md — Profile catalogue API + compliance service: CRUD with nested requirements, demand-defaults, profile diff, advisory compliance checker
 
 ---
 
@@ -225,7 +230,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Infrastructure & Foundation | 0/3 | Planning complete | - |
 | 2. Auth, Tenancy & RBAC | 0/4 | Planning complete | - |
-| 3. Contracts, Rate Cards & Profile Catalogue | 0/? | Not started | - |
+| 3. Contracts, Rate Cards & Profile Catalogue | 0/3 | Planning complete | - |
 | 4. Candidate Profiles & CV Management | 0/? | Not started | - |
 | 5. Demand Management & AI JD Enhancement | 0/? | Not started | - |
 | 6. AI Matching & Shortlisting | 0/? | Not started | - |
@@ -236,4 +241,4 @@ Plans:
 
 ---
 
-*Last updated: 2026-05-28*
+*Last updated: 2026-05-30*
